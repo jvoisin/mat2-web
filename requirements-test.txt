@@ -3,5 +3,5 @@ types-Flask==1.1.6
 types-Jinja2==2.11.9
 types-PyYAML==6.0.12.20240311
 wheel==0.43.0
-coverage==7.5.4
+coverage==7.6.0
 Flask-Testing==0.8.1
