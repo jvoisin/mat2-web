@@ -4,7 +4,7 @@ bubblewrap==1.2.0
 mat2==0.13.4
 flask==3.0.3
 Flask-RESTful==0.3.10
-Flask-Cors==4.0.2
+Flask-Cors==5.0.0
 Cerberus==1.3.5
 Flask-Testing==0.8.1
 blinker==1.8.2
