@@ -38,7 +38,7 @@ There are several ways for deployment:
 
 # Demo instance
 
-There is a demo instance deployed a [matweb.info](https://matweb.info).
+There is a demo instance deployed a [mat2web.dev](https://mat2web.dev/).
 Please don't upload any sensitive files to it.
 
 
@@ -159,7 +159,7 @@ into the directory path that's configured in `app.config['CUSTOM_TEMPLATES_DIR']
 
 # RESTful API
 
-If you go to https://api.matweb.info/apidocs/ you can find a Swagger documentation.
+If you go to https://api.mat2web.dev/apidocs/ you can find a Swagger documentation.
 
 <p>
 <details>
