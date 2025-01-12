@@ -75,7 +75,7 @@ Since [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) isn't fun to
 configure, feel free to copy
 [this file](https://0xacab.org/jvoisin/mat2-web/tree/master/config/uwsgi.config)
 to `/etc/uwsgi/apps-enabled/mat2-web.ini` and
-[this one](https://0xacab.org/jvoisin/mat2-web/tree/master/config/nginx.config)
+[this one](https://0xacab.org/jvoisin/mat2-web/tree/master/config/nginx-default.conf)
 to `/etc/nginx/sites-enabled/mat2-web`.
 
 Nginx is the recommended web engine, but you can also use Apache if you prefer,
