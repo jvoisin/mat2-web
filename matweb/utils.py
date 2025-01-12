@@ -2,6 +2,8 @@ import hmac
 import os
 import hashlib
 import mimetypes as mtype
+import pathlib
+import uuid
 from typing import Tuple
 
 from flask_restful import abort, current_app
@@ -68,9 +70,16 @@ def get_supported_extensions():
 
 
 def save_file(file, upload_folder):
-    filename = secure_filename(file.filename)
+    path = pathlib.Path(file.filename)
+    extension = path.suffix
+    stem = path.stem
+
+    filename = secure_filename(stem)
     if not filename:
-        raise ValueError('Invalid Filename')
+        filename = str(uuid.uuid4())
+
+    if extension:
+        filename = str(pathlib.Path(filename).with_suffix(extension))
     filepath = os.path.join(upload_folder, filename)
     file.save(os.path.join(filepath))
     return filename, filepath

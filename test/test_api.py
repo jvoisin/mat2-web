@@ -451,8 +451,8 @@ class Mat2APITestCase(unittest.TestCase):
                            headers={'content-type': 'application/json'}
                            )
         error_message = request.get_json()['message']
-        self.assertEqual(400, request.status_code)
-        self.assertEqual("Invalid Filename", error_message)
+        self.assertEqual(415, request.status_code)
+        self.assertEqual("The filetype is not supported", error_message)
 
         request = self.app.post('/api/upload',
                                 data='{"file_name": "﷽", '
@@ -534,8 +534,8 @@ class Mat2APITestCase(unittest.TestCase):
             ),
             follow_redirects=False
         )
-        self.assertEqual(r.get_json()['message'], 'Invalid Filename')
-        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.get_json()['message'], 'The filetype is not supported')
+        self.assertEqual(r.status_code, 415)
 
         r = self.app.post(
             '/api/remove_metadata',

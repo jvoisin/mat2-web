@@ -68,7 +68,7 @@ def upload_file():
             parser, mime = utils.get_file_parser(filepath)
         except ValueError:
             flash('The filetype is not supported')
-            current_app.logger.error('Unsupported filetype',)
+            current_app.logger.error('Unsupported filetype')
             return redirect(url_for('routes.upload_file'))
 
         try:

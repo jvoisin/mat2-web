@@ -187,17 +187,28 @@ class Mat2WebTestCase(TestCase):
         self.assertIn(b'.mp2', rv.data)
         self.assertEqual(rv.status_code, 200)
 
-    def test_get_upload_naughty_input(self):
+    def test_get_upload_no_ascii_no_ext_input(self):
         rv = self.client.post(
             '/',
             data=dict(
-                file=(io.BytesIO(b"a"), '﷽'),
+                file=(io.BytesIO(b"a"), '﷽.txt'),
             ),
             follow_redirects=True
         )
         self.assertEqual(rv.status_code, 200)
-        self.assertIn(b'Invalid Filename', rv.data)
+        self.assertIn(b'.cleaned.txt', rv.data)
 
+    def test_get_upload_no_ascii_stem_input(self):
+        pdfBytes = b"%PDF-1.\n 1 0 obj<</Pages 2 0 R>>endobj\n2 0 obj<</Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Parent 2 0 R>>endobj\ntrailer <</Root 1 0 R>>"
+        rv = self.client.post(
+            '/',
+            data=dict(
+                file=(io.BytesIO(pdfBytes), '한국어.pdf'),
+            ),
+            follow_redirects=True
+        )
+        self.assertEqual(rv.status_code, 200)
+        self.assertIn(b'.cleaned.pdf', rv.data)
 
 if __name__ == '__main__':
     unittest.main()
