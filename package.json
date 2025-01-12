@@ -19,7 +19,7 @@
   "author": "jvoisin, jfriedli",
   "license": "MIT",
   "dependencies": {
-    "@fullhuman/postcss-purgecss": "^6.0.0",
+    "@fullhuman/postcss-purgecss": "^7.0.0",
     "autoprefixer": "^10.2.5",
     "cssnano": "^7.0.0",
     "postcss": "^8.4.5",
