@@ -9,13 +9,13 @@
 </div>
 
 <div class="flex justify-center mt-8">
-    <div class="w-50 rounded overflow-hidden shadow-lg pb-4">
+    <div class="rounded-sm overflow-hidden shadow-lg pb-4">
         <div class="px-6 pt-4 pb-2 grid grid-rows-1">
             <form method="post" enctype="multipart/form-data" class="grid grid-rows-1">
                 <label class="text-gray-700 text-sm text-opacity-80 mb-2" for="upload_file">Choose your file to clean</label>
-                <input class="border rounded" aria-label="" type="file" name="file" id="upload_file" accept="{{ mimetypes |  join(', ') }}">
+                <input class="border rounded-sm" aria-label="" type="file" name="file" id="upload_file" accept="{{ mimetypes |  join(', ') }}">
                 <button
-                    class="w-full mt-4 bg-blue-dark hover:bg-blue-700 text-white py-2 px-4 rounded flex justify-center"
+                    class="w-full mt-4 bg-blue-dark hover:bg-blue-700 text-white py-2 px-4 rounded-sm flex justify-center"
                     type="submit"
                     value="Upload"
                 >
@@ -31,7 +31,7 @@
     </div>
 </div>
 <button
-    class="p-0 w-10 h-10 absolute bottom-8 md:bottom-16 lg:bottom-24 right-8 md:right-16 lg:right-24 bg-blue-300 hover:bg-blue-400 rounded-full active:shadow-lg mouse shadow transition ease-in duration-200 focus:outline-none">
+    class="p-0 w-10 h-10 absolute bottom-8 md:bottom-16 lg:bottom-24 right-8 md:right-16 lg:right-24 bg-blue-300 hover:bg-blue-400 rounded-full active:shadow-lg mouse shadow-sm transition ease-in duration-200 focus:outline-hidden">
     <a href="/info" role="link" class="w-6 h-6 text-white inline-block font-bold">
         ?
     </a>

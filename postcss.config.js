@@ -4,10 +4,10 @@ const purgecss = require('@fullhuman/postcss-purgecss')
 
 module.exports = (ctx) => ({
     plugins: [
-        require('tailwindcss')(path.resolve(__dirname, 'tailwind.config.js')),
+        require('@tailwindcss/postcss'),
         require('autoprefixer'),
         process.env.NODE_ENV === 'production' ? cssnano({ preset: 'default' }) : null,
-        ctx.env === 'production' && purgecss.default({
+        ctx.env === 'production' && purgecss({
             content: [
                 path.resolve(__dirname, 'templates/**/*.html')
             ],

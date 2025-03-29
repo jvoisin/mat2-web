@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="grid grid-rows-1 w-50">
+<div class="grid grid-rows-1">
     <div class="grid grid-rows-1">
         {% if not meta_after %}
             <div class="px-6 py-4 grid grid-rows-1">
@@ -22,7 +22,7 @@
     </div>
 
     <div class="flex justify-center mt-8">
-        <div class="rounded w-50 overflow-hidden shadow-lg p-4">
+        <div class="rounded-sm overflow-hidden shadow-lg p-4">
             {% if not meta_after %}
             <p class="text-gray-700 text-base text-center">
                 <svg class="max-h-40 w-full fill-current text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -48,7 +48,7 @@
 
             <a class="uk-flex-1" href='{{ download_uri }}'>
                 <button
-                    class="w-full bg-blue-dark hover:bg-blue-700 text-white py-2 px-4 rounded flex justify-center"
+                    class="w-full bg-blue-dark hover:bg-blue-700 text-white py-2 px-4 rounded-sm flex justify-center"
                 >
                     <svg class="w-4 h-4 mr-2 text-white self-center" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                         <path style="fill: white" d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
@@ -60,7 +60,7 @@
     </div>
     {% if meta_after %}
     <div class="mx-auto w-full">
-        <div class="bg-white shadow-md rounded my-6">
+        <div class="bg-white shadow-md rounded-sm my-6">
             <table class="text-left w-full border-collapse">
                 <div class="px-6 py-4 grid grid-rows-1">
                     <h1 class="font-light text-center text-4xl">Remaining Metadata</h1>
