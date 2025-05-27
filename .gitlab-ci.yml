@@ -54,7 +54,7 @@ tests:debian:
 build-docker:
   stage: build_container
   image:
-    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug
     entrypoint: [""]
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
