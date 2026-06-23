@@ -5,3 +5,7 @@ static/.webassets-cache
 *.md
 .git
 test
+.venv
+.venv*
+.coverage
+.gitlab-ci-local
