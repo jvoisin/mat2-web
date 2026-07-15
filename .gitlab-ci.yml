@@ -33,7 +33,7 @@ bandit:
 
 tests:debian:
   stage: test
-  image: debian:bookworm-20260623
+  image: debian:12
   before_script:
     - apt update
   script:
