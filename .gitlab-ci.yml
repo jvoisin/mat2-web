@@ -69,7 +69,7 @@ renovate:
   variables:
     RENOVATE_TOKEN: $GITLAB_API_TOKEN
   image:
-    name: renovate/renovate:43
+    name: renovate/renovate:44
     entrypoint: ['']
   only:
     - schedules
