@@ -1,5 +1,5 @@
 # Build the needed css files in an intermediate container
-FROM node:20-bookworm AS static_web_assets_build
+FROM node:26-bookworm AS static_web_assets_build
 WORKDIR /var/www/mat2-web
 COPY . /var/www/mat2-web
 RUN npm install \
