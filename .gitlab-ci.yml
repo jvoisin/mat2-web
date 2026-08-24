@@ -33,7 +33,7 @@ bandit:
 
 tests:debian:
   stage: test
-  image: debian:12
+  image: debian:13
   before_script:
     - apt update
   script:
