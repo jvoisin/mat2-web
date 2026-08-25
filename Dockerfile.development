@@ -1,4 +1,7 @@
-FROM python:3.14-bookworm
+FROM node:26-bookworm AS node
+
+FROM python:3.13-trixie
+COPY --from=node /usr/local /usr/local
 ADD . /mat2-web
 WORKDIR /mat2-web
 RUN apt-get update \
@@ -9,16 +12,14 @@ RUN apt-get update \
     gir1.2-poppler-0.18 \
     gir1.2-gdkpixbuf-2.0 \
     libimage-exiftool-perl \
-    libgirepository1.0-dev \
+    libgirepository-2.0-dev \
     libcairo2-dev \
     python3-dev \
     pkg-config \
-    nodejs npm \
     python3-venv \
 &&  python3 -m venv /opt/venv \
 &&  /opt/venv/bin/pip install -r requirements.txt \
-&&  npm i \
-&&  npm install --global postcss postcss-cli \
+&&  npm ci \
 &&  rm -rf /var/cache/apt/* /var/lib/apt/lists/*
 ENV PATH=/opt/venv/bin:$PATH
 CMD ["flask", "run", "--host=0.0.0.0"]

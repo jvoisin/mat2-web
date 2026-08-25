@@ -1,14 +1,13 @@
 # Build the needed css files in an intermediate container
-FROM node:20-bookworm AS static_web_assets_build
+FROM node:26-bookworm AS static_web_assets_build
 WORKDIR /var/www/mat2-web
 COPY . /var/www/mat2-web
-RUN npm install \
-    && npm install --global postcss \
+RUN npm ci \
     && npm run build:css
 
 # Build Python dependencies in a separate stage so compilers/dev headers
 # are not present in the final runtime image.
-FROM debian:bookworm-slim AS python_deps_build
+FROM debian:trixie-slim AS python_deps_build
 WORKDIR /var/www/mat2-web
 COPY requirements.txt /var/www/mat2-web/requirements.txt
 RUN set -x \
@@ -22,14 +21,14 @@ RUN set -x \
         python3-venv \
         pkg-config \
         gobject-introspection \
-        libgirepository1.0-dev \
+        libgirepository-2.0-dev \
         libcairo2-dev \
     && python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt \
     && rm -rf /var/cache/apt/* /var/lib/apt/lists/*
 
-# https://github.com/nginxinc/docker-nginx-unprivileged/blob/master/stable/bookworm/Dockerfile
-FROM debian:bookworm-slim
+# https://github.com/nginxinc/docker-nginx-unprivileged/blob/master/stable/trixie/Dockerfile
+FROM debian:trixie-slim
 
 LABEL maintainer="Mat-Web Co-Maintainer <jan.friedli@immerda.ch>"
 
@@ -42,10 +41,9 @@ COPY --from=python_deps_build /opt/venv /opt/venv
 ENV MAT2_WEB_DOWNLOAD_FOLDER=/app/upload
 
 RUN set -x \
-    && addgroup --system --gid 101 nginx \
-    && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 101 nginx \
     && apt-get update \
     && apt-get install --no-install-recommends --no-install-suggests -y \
+        adduser \
         ca-certificates \
         nginx \
         ffmpeg \
@@ -55,10 +53,12 @@ RUN set -x \
         gir1.2-poppler-0.18 \
         gir1.2-rsvg-2.0 \
         libimage-exiftool-perl \
-        libgirepository-1.0-1 \
+        libgirepository-2.0-0 \
         libcairo2 \
         uwsgi \
         uwsgi-plugin-python3 \
+    && addgroup --system --gid 101 nginx \
+    && adduser --system --disabled-login --ingroup nginx --no-create-home --home /nonexistent --gecos "nginx user" --shell /bin/false --uid 101 nginx \
     && rm /etc/nginx/sites-enabled/default /etc/nginx/nginx.conf \
     && cp ./config/nginx-default.conf /etc/nginx/sites-enabled/default \
     && cp ./config/nginx.conf /etc/nginx/nginx.conf \
