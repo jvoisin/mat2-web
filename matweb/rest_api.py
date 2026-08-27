@@ -166,6 +166,12 @@ class APIBulkDownloadCreator(Resource):
         except DocumentError as e:
             abort(400, message="Invalid Post Body")
             current_app.logger.error('BulkDownload -  Invalid Post Body: %s', str(e))
+
+        file_names = [file_candidate['file_name'] for file_candidate in data['download_list']]
+        if len(file_names) != len(set(file_names)):
+            current_app.logger.error('BulkDownload -  Duplicate file names in download_list')
+            abort(400, message='download_list contains duplicate file names')
+
         # prevent the zip file from being overwritten
         zip_filename = 'files.' + str(uuid4()) + '.zip'
         zip_path = os.path.join(current_app.config['UPLOAD_FOLDER'], zip_filename)

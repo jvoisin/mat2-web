@@ -303,6 +303,27 @@ class Mat2APITestCase(unittest.TestCase):
         request = self.app.get(upload_two['download_link'])
         self.assertEqual(request.status_code, 404)
 
+    def test_api_bulk_download_rejects_duplicate_file_names(self):
+        upload_data = '{"file_name": "test_name.gif", "file": "R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}'
+        uploads = []
+        for _ in range(2):
+            request = self.app.post('/api/upload', data=upload_data,
+                                    headers={'content-type': 'application/json'})
+            self.assertEqual(request.status_code, 201)
+            uploads.append(request.get_json())
+
+        request = self.app.post(
+            '/api/download/bulk',
+            data=json.dumps({'download_list': [
+                {'file_name': uploads[0]['output_filename'], 'key': uploads[0]['key'], 'secret': uploads[0]['secret']},
+                {'file_name': uploads[0]['output_filename'], 'key': uploads[1]['key'], 'secret': uploads[1]['secret']},
+            ]}),
+            headers={'content-type': 'application/json'},
+        )
+        self.assertEqual(request.status_code, 400)
+        error = request.get_json()['message']
+        self.assertEqual(error, 'download_list contains duplicate file names')
+
     def test_api_bulk_empty_body(self):
         request = self.app.post(
             '/api/download/bulk',
