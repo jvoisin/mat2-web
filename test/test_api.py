@@ -75,11 +75,15 @@ class Mat2APITestCase(unittest.TestCase):
             parser = get_file_parser.return_value[0]
             get_file_parser.return_value = (parser, 'application/octet-stream')
             get_output_parser.return_value = (parser, 'application/octet-stream')
-            parser.remove_all.return_value = True
             parser.get_meta.return_value = {'binary': b'metadata'}
             parser.output_filename = os.path.join(self.upload_folder, 'test.cleaned.bin')
-            with open(parser.output_filename, 'wb') as output_file:
-                output_file.write(b'cleaned')
+
+            def create_cleaned_file():
+                with open(parser.output_filename, 'wb') as output_file:
+                    output_file.write(b'cleaned')
+                return True
+
+            parser.remove_all.side_effect = create_cleaned_file
 
             request = self.app.post(
                 '/api/upload',
@@ -320,18 +324,16 @@ class Mat2APITestCase(unittest.TestCase):
 
     def test_api_bulk_download_rejects_duplicate_file_names(self):
         upload_data = '{"file_name": "test_name.gif", "file": "R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}'
-        uploads = []
-        for _ in range(2):
-            request = self.app.post('/api/upload', data=upload_data,
-                                    headers={'content-type': 'application/json'})
-            self.assertEqual(request.status_code, 201)
-            uploads.append(request.get_json())
+        request = self.app.post('/api/upload', data=upload_data,
+                                headers={'content-type': 'application/json'})
+        self.assertEqual(request.status_code, 201)
+        uploaded_file = request.get_json()
 
         request = self.app.post(
             '/api/download/bulk',
             data=json.dumps({'download_list': [
-                {'file_name': uploads[0]['output_filename'], 'key': uploads[0]['key'], 'secret': uploads[0]['secret']},
-                {'file_name': uploads[0]['output_filename'], 'key': uploads[1]['key'], 'secret': uploads[1]['secret']},
+                {'file_name': uploaded_file['output_filename'], 'key': uploaded_file['key'], 'secret': uploaded_file['secret']},
+                {'file_name': uploaded_file['output_filename'], 'key': uploaded_file['key'], 'secret': uploaded_file['secret']},
             ]}),
             headers={'content-type': 'application/json'},
         )

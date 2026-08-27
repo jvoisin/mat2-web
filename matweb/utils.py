@@ -86,6 +86,8 @@ def save_file(file, upload_folder):
     filename = secure_filename(path.name)
     if not filename:
         filename = str(uuid.uuid4())
+    if path.suffix and pathlib.Path(filename).suffix != path.suffix:
+        filename = str(pathlib.Path(filename).with_suffix(path.suffix))
 
     filepath = os.path.join(upload_folder, filename)
     cleaned_filepath = get_cleaned_filepath(filepath)
