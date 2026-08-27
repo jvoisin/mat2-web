@@ -11,6 +11,18 @@ from libmat2 import parser_factory
 from werkzeug.utils import secure_filename
 
 
+def json_safe(value):
+    if isinstance(value, bytes):
+        return value.decode('utf-8', errors='replace')
+    if isinstance(value, dict):
+        return {json_safe(key): json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    if isinstance(value, tuple):
+        return [json_safe(item) for item in value]
+    return value
+
+
 def get_allow_origin_header_value():
     return os.environ.get('MAT2_ALLOW_ORIGIN_WHITELIST', '*').split(" ")
 
@@ -54,8 +66,8 @@ def return_file_created_response(
         'mime': mime,
         'key': key,
         'secret': secret,
-        'meta': meta,
-        'meta_after': meta_after,
+        'meta': json_safe(meta),
+        'meta_after': json_safe(meta_after),
         'download_link': download_link
     }
 

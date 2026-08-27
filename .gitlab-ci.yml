@@ -52,6 +52,12 @@ tests:debian:
         coverage_format: cobertura
         path: coverage.xml
 
+tests:production-container:
+  stage: test
+  image: quay.io/podman/stable:v4.9.3
+  script:
+    - sh test/test_production_container.sh
+
 build-docker:
   stage: build_container
   image:

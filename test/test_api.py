@@ -54,6 +54,27 @@ class Mat2APITestCase(unittest.TestCase):
         self.assertTrue('http://localhost/api/download/' in data['download_link'])
         self.assertTrue('test_name.cleaned.jpg' in data['download_link'])
 
+    def test_api_upload_serializes_binary_metadata(self):
+        with patch('matweb.rest_api.utils.get_file_parser') as get_file_parser, \
+                patch('matweb.utils.parser_factory.get_parser') as get_output_parser:
+            parser = get_file_parser.return_value[0]
+            get_file_parser.return_value = (parser, 'application/octet-stream')
+            get_output_parser.return_value = (parser, 'application/octet-stream')
+            parser.remove_all.return_value = True
+            parser.get_meta.return_value = {'binary': b'metadata'}
+            parser.output_filename = os.path.join(self.upload_folder, 'test.cleaned.bin')
+            with open(parser.output_filename, 'wb') as output_file:
+                output_file.write(b'cleaned')
+
+            request = self.app.post(
+                '/api/upload',
+                data='{"file_name": "test.bin", "file": "dGVzdA=="}',
+                headers={'content-type': 'application/json'},
+            )
+
+        self.assertEqual(request.status_code, 201)
+        self.assertEqual(request.get_json()['meta']['binary'], 'metadata')
+
     def test_api_upload_missing_params(self):
         request = self.app.post('/api/upload',
                                 data='{"file_name": "test_name.jpg"}',
