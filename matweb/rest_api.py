@@ -41,6 +41,9 @@ class APIUpload(Resource):
         file = FileStorage(stream=io.BytesIO(file_data), filename=args['file_name'])
         try:
             filename, filepath = utils.save_file(file, current_app.config['UPLOAD_FOLDER'])
+        except FileExistsError:
+            current_app.logger.error('Upload - File name already exists')
+            abort(400, message='File name already exists')
         except ValueError:
             current_app.logger.error('Upload - Invalid file name')
             abort(400, message='Invalid Filename')
@@ -109,6 +112,9 @@ class APIClean(Resource):
             abort(400, message='No selected `file`')
         try:
             filename, filepath = utils.save_file(uploaded_file, current_app.config['UPLOAD_FOLDER'])
+        except FileExistsError:
+            current_app.logger.error('Clean - File name already exists')
+            abort(400, message='File name already exists')
         except ValueError:
             current_app.logger.error('Clean - Invalid Filename')
             abort(400, message='Invalid Filename')

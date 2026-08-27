@@ -54,6 +54,21 @@ class Mat2APITestCase(unittest.TestCase):
         self.assertTrue('http://localhost/api/download/' in data['download_link'])
         self.assertTrue('test_name.cleaned.jpg' in data['download_link'])
 
+    def test_api_upload_rejects_duplicate_filename(self):
+        upload_data = '{"file_name": "test_name.gif", "file": "R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}'
+        request = self.app.post('/api/upload', data=upload_data,
+                                headers={'content-type': 'application/json'})
+        self.assertEqual(request.status_code, 201)
+        download_link = request.get_json()['download_link']
+
+        request = self.app.post('/api/upload', data=upload_data,
+                                headers={'content-type': 'application/json'})
+        self.assertEqual(request.status_code, 400)
+        self.assertEqual(request.get_json()['message'], 'File name already exists')
+
+        request = self.app.get(download_link)
+        self.assertEqual(request.status_code, 200)
+
     def test_api_upload_serializes_binary_metadata(self):
         with patch('matweb.rest_api.utils.get_file_parser') as get_file_parser, \
                 patch('matweb.utils.parser_factory.get_parser') as get_output_parser:
@@ -323,6 +338,29 @@ class Mat2APITestCase(unittest.TestCase):
         self.assertEqual(request.status_code, 400)
         error = request.get_json()['message']
         self.assertEqual(error, 'download_list contains duplicate file names')
+
+    def test_api_bulk_download_with_double_extension_filename(self):
+        uploads = []
+        for filename in ('test.png', 'test.png.png'):
+            request = self.app.post(
+                '/api/upload',
+                data='{"file_name": "' + filename + '", "file": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="}',
+                headers={'content-type': 'application/json'},
+            )
+            self.assertEqual(request.status_code, 201)
+            uploads.append(request.get_json())
+
+        self.assertEqual(uploads[0]['output_filename'], 'test.cleaned.png')
+        self.assertEqual(uploads[1]['output_filename'], 'test.png.cleaned.png')
+        request = self.app.post(
+            '/api/download/bulk',
+            data=json.dumps({'download_list': [
+                {'file_name': upload['output_filename'], 'key': upload['key'], 'secret': upload['secret']}
+                for upload in uploads
+            ]}),
+            headers={'content-type': 'application/json'},
+        )
+        self.assertEqual(request.status_code, 201)
 
     def test_api_bulk_empty_body(self):
         request = self.app.post(

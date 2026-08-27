@@ -83,18 +83,24 @@ def get_supported_extensions():
 
 def save_file(file, upload_folder):
     path = pathlib.Path(file.filename)
-    extension = path.suffix
-    stem = path.stem
-
-    filename = secure_filename(stem)
+    filename = secure_filename(path.name)
     if not filename:
         filename = str(uuid.uuid4())
 
-    if extension:
-        filename = str(pathlib.Path(filename).with_suffix(extension))
     filepath = os.path.join(upload_folder, filename)
-    file.save(os.path.join(filepath))
+    cleaned_filepath = get_cleaned_filepath(filepath)
+    if os.path.exists(cleaned_filepath):
+        raise FileExistsError(filename)
+    with open(filepath, 'xb') as destination:
+        file.save(destination)
     return filename, filepath
+
+
+def get_cleaned_filepath(filepath):
+    filename, extension = os.path.splitext(filepath)
+    if filename.endswith('.tar') and len(filename) > 4:
+        filename, extension = filename[:-4], '.tar' + extension
+    return filename + '.cleaned' + extension
 
 
 def get_file_parser(filepath: str):
