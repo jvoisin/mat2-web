@@ -23,7 +23,6 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 chmod a+rwx "$test_workspace"
-sed '/uwsgi_pass/a\		uwsgi_read_timeout 300s;' config/nginx-default.conf > "$test_workspace/nginx-default.conf"
 podman run --rm --volume "$test_workspace:/work:Z" docker.io/curlimages/curl:8.12.1 \
     --fail --location \
     --output /work/mat2.tar.gz \
@@ -42,10 +41,9 @@ podman run --detach --name "$container_name" \
     --tmpfs=/tmp \
     --tmpfs=/run/uwsgi \
     --tmpfs=/app/upload \
-    --volume "$test_workspace/nginx-default.conf:/etc/nginx/sites-enabled/default:ro,Z" \
     --security-opt=no-new-privileges \
     --security-opt=seccomp="$PWD/config/seccomp.json" \
-    "$image_name" -c 'nginx; uwsgi --ini /etc/uwsgi/apps-enabled/mat2-web.ini --harakiri 300;' >/dev/null
+    "$image_name" -c 'nginx; uwsgi --ini /etc/uwsgi/apps-enabled/mat2-web.ini;' >/dev/null
 
 podman run --rm --network "$network_name" docker.io/curlimages/curl:8.12.1 \
     --fail --retry 30 --retry-all-errors --retry-connrefused --retry-delay 1 \
@@ -60,4 +58,4 @@ podman run --rm \
 
 response="$(printf '%s' '{"file_name":"test_name.gif","file":"R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}' | podman run --rm --interactive --network "$network_name" docker.io/curlimages/curl:8.12.1 --fail-with-body --header 'Content-Type: application/json' --data-binary @- http://matweb:8080/api/upload)"
 
-printf '%s' "$response" | grep -q '"output_filename":"test_name.cleaned.gif"'
+printf '%s' "$response" | grep -Eq '"output_filename"[[:space:]]*:[[:space:]]*"test_name\.cleaned\.gif"'
