@@ -100,8 +100,6 @@ def save_file(file, upload_folder):
 
 def get_cleaned_filepath(filepath):
     filename, extension = os.path.splitext(filepath)
-    if filename.endswith('.tar') and len(filename) > 4:
-        filename, extension = filename[:-4], '.tar' + extension
     return filename + '.cleaned' + extension
 
 
