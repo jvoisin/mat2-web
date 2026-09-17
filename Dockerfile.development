@@ -1,6 +1,6 @@
 FROM node:26-bookworm AS node
 
-FROM python:3.13-trixie
+FROM python:3.14-trixie
 COPY --from=node /usr/local /usr/local
 ADD . /mat2-web
 WORKDIR /mat2-web
