@@ -54,7 +54,7 @@ tests:debian:
 
 tests:production-container:
   stage: test
-  image: quay.io/podman/stable:v4.9.4
+  image: quay.io/podman/stable:v5.8.7
   script:
     - sh test/test_production_container.sh
 
