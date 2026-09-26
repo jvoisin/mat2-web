@@ -90,11 +90,26 @@ def save_file(file, upload_folder):
     if not filename:
         filename = str(uuid.uuid4())
 
-    if extension:
-        filename = str(pathlib.Path(filename).with_suffix(extension))
-    filepath = os.path.join(upload_folder, filename)
-    file.save(os.path.join(filepath))
-    return filename, filepath
+    base_name = filename
+    counter = 0
+    while True:
+        name = f'{base_name}-{counter}' if counter else base_name
+        filename = name + extension
+        filepath = os.path.join(upload_folder, filename)
+        cleaned_path = os.path.join(upload_folder, name + '.cleaned' + extension)
+        if os.path.exists(filepath) or os.path.exists(cleaned_path):
+            counter += 1
+            continue
+
+        try:
+            output = open(filepath, 'xb')
+        except FileExistsError:
+            counter += 1
+            continue
+
+        with output:
+            file.save(output)
+        return filename, filepath
 
 
 def get_file_parser(filepath: str):

@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import shutil
@@ -10,6 +11,7 @@ from unittest.mock import patch
 
 from openapi_spec_validator import validate_spec
 from six import BytesIO
+from werkzeug.datastructures import FileStorage
 
 import main
 
@@ -303,26 +305,69 @@ class Mat2APITestCase(unittest.TestCase):
         request = self.app.get(upload_two['download_link'])
         self.assertEqual(request.status_code, 404)
 
-    def test_api_bulk_download_rejects_duplicate_file_names(self):
-        upload_data = '{"file_name": "test_name.gif", "file": "R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}'
+    def test_api_bulk_download_with_conflicting_upload_names(self):
         uploads = []
-        for _ in range(2):
-            request = self.app.post('/api/upload', data=upload_data,
+        for filename, color in (('test_name.gif', 0), ('test_name.gif', 255),
+                    ('test_name.gif', 128), ('test_name.gif.gif', 0)):
+            gif = bytearray(base64.b64decode('R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='))
+            gif[16:19] = bytes([color] * 3)
+            request = self.app.post('/api/upload', data=json.dumps({
+                'file_name': filename, 'file': base64.b64encode(gif).decode('ascii')
+            }),
                                     headers={'content-type': 'application/json'})
             self.assertEqual(request.status_code, 201)
             uploads.append(request.get_json())
+
+        self.assertEqual([upload['output_filename'] for upload in uploads], [
+            'test_name.cleaned.gif', 'test_name-1.cleaned.gif',
+            'test_name-2.cleaned.gif', 'test_name.gif.cleaned.gif',
+        ])
+        for upload in uploads:
+            head = self.app.head(upload['download_link'])
+            self.assertEqual(head.status_code, 200)
+            head.close()
 
         request = self.app.post(
             '/api/download/bulk',
             data=json.dumps({'download_list': [
                 {'file_name': uploads[0]['output_filename'], 'key': uploads[0]['key'], 'secret': uploads[0]['secret']},
-                {'file_name': uploads[0]['output_filename'], 'key': uploads[1]['key'], 'secret': uploads[1]['secret']},
+                {'file_name': uploads[1]['output_filename'], 'key': uploads[1]['key'], 'secret': uploads[1]['secret']},
+                {'file_name': uploads[2]['output_filename'], 'key': uploads[2]['key'], 'secret': uploads[2]['secret']},
+                {'file_name': uploads[3]['output_filename'], 'key': uploads[3]['key'], 'secret': uploads[3]['secret']},
             ]}),
             headers={'content-type': 'application/json'},
         )
-        self.assertEqual(request.status_code, 400)
-        error = request.get_json()['message']
-        self.assertEqual(error, 'download_list contains duplicate file names')
+        self.assertEqual(request.status_code, 201)
+        archive = self.app.get(request.get_json()['download_link'])
+        self.assertEqual(archive.status_code, 200)
+        with zipfile.ZipFile(BytesIO(archive.data)) as downloaded_zip:
+            self.assertCountEqual([os.path.basename(name) for name in downloaded_zip.namelist()], [
+                'test_name.cleaned.gif', 'test_name-1.cleaned.gif',
+                'test_name-2.cleaned.gif',
+                'test_name.gif.cleaned.gif',
+            ])
+
+    def test_upload_retries_when_filename_is_claimed_during_open(self):
+        original_open = open
+        first_path = os.path.join(self.upload_folder, 'test.gif')
+
+        def racing_open(filepath, mode):
+            if filepath == first_path:
+                with original_open(filepath, 'xb') as claimed:
+                    claimed.write(b'first')
+                raise FileExistsError(filepath)
+            return original_open(filepath, mode)
+
+        with patch('matweb.utils.open', create=True, side_effect=racing_open):
+            filename, filepath = main.utils.save_file(
+                FileStorage(stream=io.BytesIO(b'second'), filename='test.gif'), self.upload_folder
+            )
+
+        self.assertEqual(filename, 'test-1.gif')
+        with original_open(first_path, 'rb') as claimed:
+            self.assertEqual(claimed.read(), b'first')
+        with original_open(filepath, 'rb') as saved:
+            self.assertEqual(saved.read(), b'second')
 
     def test_api_bulk_empty_body(self):
         request = self.app.post(
