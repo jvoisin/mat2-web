@@ -32,6 +32,13 @@ podman run --rm --user 0 --volume "$test_workspace:/work:Z" docker.io/library/al
 mat2_source_dir="$(find "$test_workspace" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
 
 podman build --tag "$image_name" --file Dockerfile.production .
+python_version="$(podman run --rm --entrypoint python3 "$image_name" --version 2>&1 | sed -n 's/^Python \([0-9]*\.[0-9]*\).*/\1/p')"
+if [ -z "$python_version" ]; then
+    echo "Unable to determine Python version from the production image" >&2
+    exit 1
+fi
+python_image="docker.io/library/python:${python_version}-alpine"
+
 podman network create "$network_name" >/dev/null
 podman run --detach --name "$container_name" \
     --entrypoint sh \
@@ -53,7 +60,7 @@ podman run --rm \
     --network "$network_name" \
     --volume "$mat2_source_dir/tests/data:/fixtures:ro,Z" \
     --volume "$PWD/test/test_upstream_fixtures_api.py:/test.py:ro,Z" \
-    docker.io/library/python:3.13-alpine \
+    "$python_image" \
     python /test.py http://matweb:8080/api/upload /fixtures
 
 response="$(printf '%s' '{"file_name":"test_name.gif","file":"R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="}' | podman run --rm --interactive --network "$network_name" docker.io/curlimages/curl:8.12.1 --fail-with-body --header 'Content-Type: application/json' --data-binary @- http://matweb:8080/api/upload)"
